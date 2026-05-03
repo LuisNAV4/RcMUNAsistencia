@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
+    <link rel="icon" href="./images/logorc-removebg-preview.png" type="image/png">
+    <title>RC MUN - Busqueda</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        /* Imagen de fondo */
+        background-image: url("./images/612130903_17885110746427067_3379526907570788129_n.webp");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        background-attachment: fixed;
+        font-family: -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+        min-height: 100vh;
+        padding: 20px;
+        /* Overlay para mejorar legibilidad */
+        position: relative;
+    }
+
+    /* Capa semitransparente detrás del contenido */
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(255, 255, 255, 0.85); /* Blanco con 85% opacidad */
+        z-index: -1;
+    }
+
+    /* Alternativa si la imagen es muy clara: overlay más oscuro para que el texto blanco resalte */
+    /* body::before {
+        background-color: rgba(0, 0, 0, 0.6);
+    } */
+
+    .container {
+        max-width: 650px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+
+    .card {
+        background: white;
+        border-radius: 28px;
+        padding: 24px;
+        margin-bottom: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    h1 {
+        font-size: 1.6rem;
+        color: #333;
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .sub {
+        text-align: center;
+        color: #666;
+        font-size: 0.85rem;
+        margin-bottom: 24px;
+    }
+
+    .tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .tab {
+        flex: 1;
+        padding: 12px;
+        background: #f0f0f0;
+        border: none;
+        border-radius: 60px;
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+        color: #555;
+        text-align: center;
+    }
+
+    .tab.active {
+        background: linear-gradient(135deg, #081966 0%, #1a6edd 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(8, 25, 102, 0.3);
+    }
+
+    .search-box {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    input {
+        flex: 3;
+        padding: 14px 18px;
+        font-size: 1rem;
+        border: 1.5px solid #e0e0e0;
+        border-radius: 60px;
+        outline: none;
+        transition: 0.2s;
+        min-width: 150px;
+    }
+
+    input:focus {
+        border-color: #1a6edd;
+    }
+
+    button {
+        flex: 1;
+        background: linear-gradient(135deg, #081966 0%, #1a6edd 100%);
+        color: white;
+        border: none;
+        border-radius: 60px;
+        padding: 0 20px;
+        font-size: 1rem;
+        font-weight: bold;
+        cursor: pointer;
+        transition: transform 0.1s, opacity 0.2s;
+        min-width: 100px;
+    }
+
+    button:active {
+        transform: scale(0.97);
+    }
+
+    .result-card {
+        background: #f8f9ff;
+        border-radius: 24px;
+        padding: 20px;
+        margin-bottom: 16px;
+        border: 1px solid #e9ecef;
+        transition: 0.2s;
+    }
+
+    .qr-code {
+        background: white;
+        padding: 16px;
+        border-radius: 20px;
+        display: inline-block;
+        margin: 12px auto;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        text-align: center;
+    }
+
+    .qr-code img {
+        width: 200px;
+        height: 200px;
+        max-width: 100%;
+        height: auto;
+        object-fit: contain;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e8e8ec;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .info-row:last-child {
+        border-bottom: none;
+    }
+
+    .label {
+        font-weight: 600;
+        color: #555;
+        font-size: 0.85rem;
+    }
+
+    .value {
+        color: #222;
+        font-weight: 500;
+        text-align: right;
+        word-break: break-word;
+        max-width: 60%;
+    }
+
+    .estado {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 30px;
+        font-size: 0.75rem;
+        font-weight: bold;
+    }
+
+    .estado.registrado {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .estado.pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .loading {
+        text-align: center;
+        padding: 40px;
+    }
+
+    .loader {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #1a6edd;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 16px;
+    }
+
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+
+    .error {
+        background: #fee;
+        color: #c33;
+        padding: 14px;
+        border-radius: 16px;
+        text-align: center;
+    }
+
+    .footer {
+        text-align: center;
+        font-size: 0.7rem;
+        color: rgba(0, 0, 0, 0.6);
+        margin-top: 20px;
+    }
+
+    hr {
+        margin: 16px 0;
+        border: none;
+        height: 1px;
+        background: #e0e0e0;
+    }
+
+    .multiple-result {
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+    .multiple-result:hover {
+        background: #e8ebff;
+        transform: translateX(4px);
+    }
+
+    /* ============================================ */
+    /* RESPONSIVE: Ajustes para pantallas pequeñas */
+    /* ============================================ */
+
+    @media (max-width: 600px) {
+        body {
+            padding: 12px;
+        }
+
+        .card {
+            padding: 18px;
+        }
+
+        h1 {
+            font-size: 1.3rem;
+        }
+
+        .sub {
+            font-size: 0.75rem;
+        }
+
+        .tab {
+            padding: 8px;
+            font-size: 0.85rem;
+        }
+
+        input {
+            padding: 12px 14px;
+            font-size: 0.9rem;
+        }
+
+        button {
+            padding: 12px 16px;
+            font-size: 0.9rem;
+        }
+
+        .info-row {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
+        .value {
+            text-align: left;
+            max-width: 100%;
+        }
+
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+        }
+
+        .result-card {
+            padding: 14px;
+        }
+    }
+
+    /* Para pantallas muy pequeñas (menos de 400px) */
+    @media (max-width: 400px) {
+        .search-box {
+            flex-direction: column;
+        }
+
+        button {
+            width: 100%;
+        }
+
+        .tabs {
+            gap: 8px;
+        }
+
+        .tab {
+            font-size: 0.75rem;
+            padding: 8px 4px;
+        }
+    }
+</style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="card">
+        <h1>📌 Buscador de Delegados</h1>
+        <div class="sub">Genera tu código QR</div>
+
+        <div class="tabs">
+          <button class="tab active" data-type="cedula">
+            🆔 Buscar por Cédula
+          </button>
+          <button class="tab" data-type="nombre">👤 Buscar por Nombre</button>
+        </div>
+
+        <div class="search-box">
+          <input
+            type="text"
+            id="searchInput"
+            placeholder="Ejemplo: 12345678 (número exacto, sin puntos ni letras)"
+            autocomplete="off"
+          />
+          <button id="searchBtn">🔍 Buscar</button>
+        </div>
+      </div>
+      <div id="results"></div>
+      <div class="footer">
+        👀 Al escanear el QR se registrará la asistencia automáticamente 👀
+      </div>
+    </div>
+
+    <script>
+      // ============================================================
+      // CONFIGURACIÓN
+      // ============================================================
+      const WORKER_URL = "https://soft-bush-1d65.darkluis83.workers.dev";
+
+      // Elementos
+      const searchInput = document.getElementById("searchInput");
+      const searchBtn = document.getElementById("searchBtn");
+      const resultsDiv = document.getElementById("results");
+      let searchType = "cedula";
+
+      // Tabs
+      document.querySelectorAll(".tab").forEach((tab) => {
+        tab.addEventListener("click", () => {
+          document
+            .querySelectorAll(".tab")
+            .forEach((t) => t.classList.remove("active"));
+          tab.classList.add("active");
+          searchType = tab.dataset.type;
+          searchInput.placeholder =
+            searchType === "nombre"
+              ? "Ejemplo: Laura, Juan Pérez..."
+              : "Ejemplo: 12345678 (número exacto, sin puntos ni letras)";
+          resultsDiv.innerHTML = "";
+          searchInput.value = "";
+          searchInput.focus();
+        });
+      });
+
+      searchBtn.addEventListener("click", buscar);
+      searchInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") buscar();
+      });
+
+      async function buscar() {
+        const term = searchInput.value.trim();
+        if (!term) {
+          resultsDiv.innerHTML = `<div class="card error">⚠️ Ingresa un ${searchType === "nombre" ? "nombre" : "número de cédula"}</div>`;
+          return;
+        }
+        if (searchType === "cedula" && !/^\d+$/.test(term)) {
+          resultsDiv.innerHTML = `<div class="card error">⚠️ La cédula debe contener solo números</div>`;
+          return;
+        }
+
+        resultsDiv.innerHTML = `<div class="card loading"><div class="loader"></div><p>Buscando...</p></div>`;
+
+        try {
+          const url = `${WORKER_URL}?consultar=true&search=${encodeURIComponent(term)}&type=${searchType}`;
+          const response = await fetch(url);
+          const data = await response.json();
+
+          if (!data.success) {
+            resultsDiv.innerHTML = `<div class="card error">🔍 ${data.error}</div>`;
+            return;
+          }
+
+          if (data.count === 0) {
+            resultsDiv.innerHTML = `<div class="card error">🔍 No se encontró "${term}"</div>`;
+            return;
+          }
+
+          mostrarResultados(data.resultados);
+        } catch (error) {
+          resultsDiv.innerHTML = `<div class="card error">⚠️ Error de conexión: ${error.message}</div>`;
+        }
+      }
+
+      function mostrarResultados(resultados) {
+        if (resultados.length === 1) {
+          mostrarTarjeta(resultados[0]);
+        } else {
+          let html = `<div class="card"><strong>📋 Se encontraron ${resultados.length} coincidencias:</strong><hr>`;
+          resultados.forEach((item, idx) => {
+            const isRegistered = item.estado === "✓";
+            html += `
+                    <div class="result-card multiple-result" onclick="mostrarTarjetaSeleccionada(${idx})">
+                        <div style="font-weight:700;">👤 ${escapeHtml(item.nombre)}</div>
+                        <div style="font-size:0.85rem; color:#666;">🆔 ${escapeHtml(item.cedula)}</div>
+                        <div style="margin-top:8px;">
+                            <span class="estado ${isRegistered ? "registrado" : "pendiente"}">
+                                ${isRegistered ? "✅ Ya registrado" : "⏳ Pendiente"}
+                            </span>
+                        </div>
+                    </div>
+                `;
+          });
+          html += `</div>`;
+          resultsDiv.innerHTML = html;
+          window.resultadosGlobales = resultados;
+        }
+      }
+
+      function mostrarTarjetaSeleccionada(indice) {
+        mostrarTarjeta(window.resultadosGlobales[indice]);
+      }
+
+      // ============================================================
+      // NUEVO: Generar el QR localmente con quickchart.io
+      // ============================================================
+      function mostrarTarjeta(item) {
+        const isRegistered = item.estado === "✓";
+        const workerUrl = "https://soft-bush-1d65.darkluis83.workers.dev";
+        // Construir la URL que irá DENTRO del QR (la que se escaneará)
+        const qrContent = `${workerUrl}?id=${encodeURIComponent(item.id)}&nombre=${encodeURIComponent(item.nombre)}`;
+        // URL de la imagen QR
+        const qrImageUrl = `https://quickchart.io/qr?text=${encodeURIComponent(qrContent)}&size=250&margin=2`;
+
+        const html = `
+            <div class="card">
+                <div class="info-row"><span class="label">👤 NOMBRE</span><span class="value">${escapeHtml(item.nombre)}</span></div>
+                <div class="info-row"><span class="label">🆔 CÉDULA</span><span class="value">${escapeHtml(item.cedula)}</span></div>
+                <div class="info-row"><span class="label">📋 COMITÉ</span><span class="value">${escapeHtml(item.comite || "No especificado")}</span></div>
+                <div class="info-row"><span class="label">📍 DELEGACIÓN</span><span class="value">${escapeHtml(item.delegacion || "No especificada")}</span></div>
+                <div class="info-row"><span class="label">📌 ESTADO</span><span class="value"><span class="estado ${isRegistered ? "registrado" : "pendiente"}">${isRegistered ? "✅ Registrado" : "⏳ Pendiente"}</span></span></div>
+                ${isRegistered && item.timestamp ? `<div class="info-row"><span class="label">📅 REGISTRO</span><span class="value">${escapeHtml(item.timestamp)}</span></div>` : ""}
+                <hr>
+                <div class="qr-code">
+                    <img src="${qrImageUrl}" alt="Código QR">
+                </div>
+                <p style="font-size:1rem; color:#000;">📱Muestra este QR al personal en la entrada del colegio RC <br>Se recomienda tomar captura de pantalla al QR para agilizar el proceso.📱📶</p>
+                <button onclick="resetearBusqueda()" style="background:#6c757d; margin-top:16px;">🔍 Nueva búsqueda</button>
+            </div>
+        `;
+        resultsDiv.innerHTML = html;
+      }
+
+      function resetearBusqueda() {
+        resultsDiv.innerHTML = "";
+        searchInput.value = "";
+        searchInput.focus();
+      }
+
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str).replace(/[&<>]/g, function (m) {
+          if (m === "&") return "&amp;";
+          if (m === "<") return "&lt;";
+          if (m === ">") return "&gt;";
+          return m;
+        });
+      }
+    </script>
+  </body>
+</html>
